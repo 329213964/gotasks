@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/jiajunhuang/gotasks"
-	//"github.com/jiajunhuang/gotasks/metrics"
+	"github.com/329213964/gotasks"
+	//"github.com/329213964/gotasks/metrics"
 )
 
 const (
