@@ -1,4 +1,4 @@
-module github.com/jiajunhuang/gotasks
+module github.com/329213964/gotasks
 
 go 1.14
 
