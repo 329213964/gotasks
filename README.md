@@ -24,8 +24,8 @@ is now, with the error string inside the task's `result_log` property.
 package main
 
 import (
-	"github.com/jiajunhuang/gotasks"
-	//"github.com/jiajunhuang/gotasks/metrics"
+	"github.com/329213964/gotasks"
+	//"github.com/329213964/gotasks/metrics"
 )
 
 const (
@@ -54,8 +54,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/jiajunhuang/gotasks"
-	//"github.com/jiajunhuang/gotasks/metrics"
+	"github.com/329213964/gotasks"
+	//"github.com/329213964/gotasks/metrics"
 )
 
 const (

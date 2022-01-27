@@ -7,8 +7,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jiajunhuang/gotasks/loop"
-	"github.com/jiajunhuang/gotasks/pool"
+	"github.com/329213964/gotasks/loop"
+	"github.com/329213964/gotasks/pool"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -198,6 +198,21 @@ func Run(ctx context.Context, queueNames ...string) {
 		go run(ctx, &wg, queue)
 		go monitorQueue(ctx, &wg, queue)
 	}
+
+	wg.Wait()
+}
+
+// Run a worker that listen on queues
+func RunByQueue(ctx context.Context, queue *Queue) {
+	wg := sync.WaitGroup{}
+
+	wg.Add(1)
+	go monitorQueue(ctx, &wg, NewQueue(FatalQueueName))
+	//for _, queueName := range queueNames {
+	wg.Add(2)
+	go run(ctx, &wg, queue)
+	go monitorQueue(ctx, &wg, queue)
+	//}
 
 	wg.Wait()
 }
