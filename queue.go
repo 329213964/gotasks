@@ -1,9 +1,5 @@
 package gotasks
 
-import (
-	"log"
-)
-
 type Queue struct {
 	Name     string
 	MaxLimit int
