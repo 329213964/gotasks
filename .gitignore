@@ -1,2 +1,5 @@
 /gotasks
 /coverage.out
+.idea/gotasks.iml
+.idea/modules.xml
+.idea/vcs.xml
