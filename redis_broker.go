@@ -58,7 +58,13 @@ func (r *RedisBroker) Acquire(queueName string) *Task {
 	}
 	v := []byte(vs[1])
 
-	if err := json.Unmarshal(v, &task); err != nil {
+	result, err := rc.Get(genTaskName(string(v))).Result()
+	if err != nil {
+		log.Panicf("failed to get task from redis: %s", err)
+		return nil // never executed
+	}
+
+	if err = json.Unmarshal([]byte(result), &task); err != nil {
 		log.Panicf("failed to get task from redis: %s", err)
 		return nil // never executed
 	}
@@ -67,7 +73,11 @@ func (r *RedisBroker) Acquire(queueName string) *Task {
 }
 
 func (r *RedisBroker) Ack(task *Task) bool {
-	// redis doesn't support ACK
+	cmd := rc.Del(genTaskName(task.ID))
+	if cmd.Err() != nil {
+		log.Panicf("failed to del task id is:%s", cmd.Err())
+		return false
+	}
 	return true
 }
 
@@ -89,7 +99,7 @@ func (r *RedisBroker) Enqueue(task *Task) string {
 	}
 
 	rc.Set(genTaskName(task.ID), taskBytes, time.Duration(r.TaskTTL)*time.Second)
-	rc.LPush(genQueueName(task.QueueName), taskBytes)
+	rc.LPush(genQueueName(task.QueueName), task.ID)
 	return task.ID
 }
 

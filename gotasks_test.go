@@ -3,6 +3,7 @@ package gotasks
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"testing"
 	"time"
@@ -18,7 +19,7 @@ const (
 	testHandlerNotFoundJobName = "test_handler_not_found"
 
 	testQueueName = "test_queue"
-	testRedisURL  = "redis://127.0.0.1:6379/0"
+	testRedisURL  = "redis://:QAXRedisServer@127.0.0.1:6379/0"
 )
 
 func TestAckWhen(t *testing.T) {
@@ -32,31 +33,67 @@ func TestGenFunctions(t *testing.T) {
 }
 
 func TestRedisBroker(t *testing.T) {
-	// register tasks
-	handler1 := func(args ArgsMap) (ArgsMap, error) {
-		time.Sleep(time.Duration(1) * time.Microsecond)
-		return args, nil
-	}
-	handler2 := func(args ArgsMap) (ArgsMap, error) {
-		time.Sleep(time.Duration(1) * time.Microsecond)
-		return args, nil
-	}
-	Register(testJobName, handler1, handler2)
-
+	//// register tasks
+	//handler1 := func(args ArgsMap) (ArgsMap, error) {
+	//	time.Sleep(time.Duration(1) * time.Microsecond)
+	//	return args, nil
+	//}
+	//handler2 := func(args ArgsMap) (ArgsMap, error) {
+	//	time.Sleep(time.Duration(1) * time.Microsecond)
+	//	return args, nil
+	//}
+	//Register(testJobName, handler1, handler2)
+	//
 	// set broker
 	UseRedisBroker(testRedisURL, WithRedisTaskTTL(100))
 
 	// enqueue
 	log.Printf("current jobMap: %+v", jobMap)
 	queue := NewQueue(testQueueName, WithMaxLimit(20), WithMonitorInterval(5))
-	taskID := queue.Enqueue(testJobName, MapToArgsMap(map[string]interface{}{}))
-	defer rc.Del(genTaskName(taskID))
+	queue.Enqueue(testJobName, MapToArgsMap(map[string]interface{}{}))
+	//defer rc.Del(genTaskName(taskID))
 
+	ctx, cancel := context.WithCancel(context.Background())
+	//go Run(ctx, testQueueName) // it will blocking until the first job is executed
+	time.Sleep(time.Second * time.Duration(1))
+	cancel()
+	log.Printf("Run function returned, ctx: %+v", ctx)
+}
+
+func TestQueue_Enqueue(t *testing.T) {
+	UseRedisBroker(testRedisURL, WithRedisTaskTTL(100))
+
+	// enqueue
+	log.Printf("current jobMap: %+v", jobMap)
+	queue := NewQueue(testQueueName, WithMaxLimit(20), WithMonitorInterval(5))
+	queue.Enqueue(testJobName, MapToArgsMap(map[string]interface{}{}))
+
+	ctx, cancel := context.WithCancel(context.Background())
+	time.Sleep(time.Second * time.Duration(1))
+	cancel()
+	log.Printf("Run function returned, ctx: %+v", ctx)
+}
+
+func TestRedisBroker_Acquire(t *testing.T) {
+	// register tasks
+	handler1 := func(args ArgsMap) (ArgsMap, error) {
+		time.Sleep(time.Duration(1) * time.Microsecond)
+		fmt.Println(args)
+		return args, nil
+	}
+	handler2 := func(args ArgsMap) (ArgsMap, error) {
+		time.Sleep(time.Duration(1) * time.Microsecond)
+		fmt.Println(args)
+		return args, nil
+	}
+	Register(testJobName, handler1, handler2)
+
+	// set broker
+	UseRedisBroker(testRedisURL, WithRedisTaskTTL(100))
 	ctx, cancel := context.WithCancel(context.Background())
 	go Run(ctx, testQueueName) // it will blocking until the first job is executed
 	time.Sleep(time.Second * time.Duration(1))
 	cancel()
-	log.Printf("Run function returned, ctx: %+v", ctx)
 }
 
 func TestPanicHandler(t *testing.T) {
